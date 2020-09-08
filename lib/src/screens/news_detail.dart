@@ -1,28 +1,81 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../widgets/persistent_webview.dart';
 import '../models/item_model.dart';
 import '../blocs/comments_provider.dart';
 import '../widgets/comment.dart';
 
-class NewsDetailScreenArguments {
+class NewsTabs extends StatefulWidget {
   final int itemId;
-  NewsDetailScreenArguments({this.itemId});
+  final String url;
+  static const routeName = "/news-detail";
+
+  NewsTabs({Key key, this.itemId, this.url}) : super(key: key);
+  @override
+  _NewsTabsState createState() => _NewsTabsState();
 }
 
-class NewsDetail extends StatelessWidget {
-  static const routeName = "/news-detail";
+class _NewsTabsState extends State<NewsTabs> {
+  final List<Tab> tabs = <Tab>[
+    Tab(text: "Article"),
+    Tab(text: "Comments"),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+            appBar: AppBar(
+              title: Text("Detail Title"),
+              bottom: TabBar(
+                tabs: tabs,
+              ),
+            ),
+            body: TabBarView(
+              children: <Widget>[
+                PersistentWebView(url: widget.url),
+                NewsDetail(
+                  itemId: widget.itemId,
+                ),
+              ],
+            )));
+  }
+}
+
+class NewsDetailScreenArguments {
+  final int itemId;
+  final String url;
+  NewsDetailScreenArguments({this.itemId, this.url});
+}
+
+class NewsDetail extends StatefulWidget {
   final int itemId;
   NewsDetail({this.itemId});
+  @override
+  State<StatefulWidget> createState() => _NewsDetail(itemId: itemId);
+}
+
+class _NewsDetail extends State<NewsDetail>
+    with AutomaticKeepAliveClientMixin<NewsDetail> {
+  final int itemId;
+  _NewsDetail({this.itemId});
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(context) {
     final bloc = CommentsProvider.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Detail Title"),
-      ),
-      body: buildBody(bloc),
-    );
+    super.build(context);
+    // return Scaffold(
+    //   appBar: AppBar(
+    //     title: Text("Detail Title"),
+    //   ),
+    //   body: buildBody(bloc),
+    // );
+    return buildBody(bloc);
   }
 
   Widget buildBody(CommentsBloc bloc) {
@@ -41,25 +94,27 @@ class NewsDetail extends StatelessWidget {
             if (!itemSnapshot.hasData) {
               return Text("Inner Loading...");
             }
-            return buildList(itemSnapshot.data, snapshot.data);
+            return NewsDetailComments(
+                item: itemSnapshot.data, itemMap: snapshot.data);
           },
         );
       },
     );
   }
+}
 
-  Widget buildTitle(ItemModel item) {
-    return Container(
-        margin: EdgeInsets.only(top: 5.0, left: 15.0, right: 15.0),
-        alignment: Alignment.topCenter,
-        child: Text(
-          item.title,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600),
-        ));
-  }
+class NewsDetailComments extends StatelessWidget {
+  const NewsDetailComments({
+    Key key,
+    @required this.item,
+    @required this.itemMap,
+  }) : super(key: key);
 
-  Widget buildList(ItemModel item, Map<int, Future<ItemModel>> itemMap) {
+  final ItemModel item;
+  final Map<int, Future<ItemModel>> itemMap;
+
+  @override
+  Widget build(BuildContext context) {
     final List<Widget> commentsList = item.kids.map((kidId) {
       return Comment(
         itemId: kidId,
@@ -68,11 +123,36 @@ class NewsDetail extends StatelessWidget {
       );
     }).toList();
 
-    return ListView(
-      children: <Widget>[
-        buildTitle(item),
-        ...commentsList,
-      ],
-    );
+    return commentsList.length > 0
+        ? ListView(
+            children: <Widget>[
+              NewsDetailTitle(item: item),
+              ...commentsList,
+            ],
+          )
+        : Center(
+            child: Text("No comments yet."),
+          );
+  }
+}
+
+class NewsDetailTitle extends StatelessWidget {
+  const NewsDetailTitle({
+    Key key,
+    @required this.item,
+  }) : super(key: key);
+
+  final ItemModel item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        margin: EdgeInsets.only(top: 5.0, left: 15.0, right: 15.0),
+        alignment: Alignment.topCenter,
+        child: Text(
+          item.title,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600),
+        ));
   }
 }

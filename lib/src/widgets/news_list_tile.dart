@@ -41,7 +41,8 @@ class NewsListTile extends StatelessWidget {
               Navigator.pushNamed(
                 context,
                 "/news-detail",
-                arguments: NewsDetailScreenArguments(itemId: item.id),
+                arguments:
+                    NewsDetailScreenArguments(itemId: item.id, url: item.url),
               );
             },
             title: Text(item.title),

@@ -22,15 +22,16 @@ class Comment extends StatelessWidget {
           );
           final children = <Widget>[
             ListTile(
-                title: Html(data: snapshot.data.text),
-                subtitle: snapshot.data.by == ""
-                    ? Text("[Deleted]")
-                    : Text(snapshot.data.by),
-                contentPadding: EdgeInsets.only(
-                  right: 16.0,
-                  left: 16.0 * depth + 10.0,
-                ),
-                leading: leading),
+              title: Html(data: snapshot.data.text),
+              subtitle: snapshot.data.by == ""
+                  ? Text("[Deleted]")
+                  : Text(snapshot.data.by),
+              contentPadding: EdgeInsets.only(
+                right: 16.0,
+                left: 16.0 * depth + 10.0,
+              ),
+              //leading: leading,
+            ),
             Divider(),
             ...snapshot.data.kids.map((kidId) => Comment(
                   itemId: kidId,

@@ -20,13 +20,11 @@ import './screens/news_list.dart';
 
 Map<String, Widget Function(BuildContext)> routes = {
   NewsList.routeName: (BuildContext context) => NewsList(),
-  NewsDetail.routeName: (BuildContext context) {
+  NewsTabs.routeName: (BuildContext context) {
     NewsDetailScreenArguments args = ModalRoute.of(context).settings.arguments;
     final commentsBloc = CommentsProvider.of(context);
     commentsBloc.fetchItemWithComments(args.itemId);
 
-    return NewsDetail(
-      itemId: args.itemId,
-    );
+    return NewsTabs(itemId: args.itemId, url: args.url);
   }
 };
